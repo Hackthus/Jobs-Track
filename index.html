@@ -229,7 +229,7 @@ $("file").addEventListener("change",async e=>{
 
 /* ---- Améliorations : statut, Kanban, tendances, calendrier, messages ---- */
 const NL=String.fromCharCode(10),CR=String.fromCharCode(13),BS=String.fromCharCode(92);
-const PROFIL={nom:"Arnold Edwin FOMEDONG",site:"arnold-edwin.vercel.app"}; // à adapter
+const PROFIL={nom:"<Nom et prénom>",site:"<portfolio/site>"}; // à adapter
 
 function setStatus(id,status){
   items=items.map(x=>{if(x.id!==id)return x;const n={...x,status};if(n.status!=="À postuler"&&!n.date)n.date=today();

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jobs Tracker</title>
+<style>
+:root{--bg:#f5f7fa;--panel:#fff;--line:#dbe3ec;--tx:#122033;--mut:#5b6f84;--ac:#0e7490;--acfg:#fff;--ok:#047857;--warn:#b45309;--bad:#b91c1c;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#05080d;--panel:#0d141d;--line:#1c2a3a;--tx:#dbe7f3;--mut:#8aa0b5;--ac:#22d3ee;--acfg:#00131a;--ok:#34d399;--warn:#fbbf24;--bad:#f87171;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#05080d;--panel:#0d141d;--line:#1c2a3a;--tx:#dbe7f3;--mut:#8aa0b5;--ac:#22d3ee;--acfg:#00131a;--ok:#34d399;--warn:#fbbf24;--bad:#f87171;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:980px;margin:0 auto;padding:20px 16px 60px}
+header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:18px}
+h1{font-size:1.4rem;margin:0}
+h1 span{color:var(--ac)}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+button,.btn{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--tx);padding:8px 14px;border-radius:10px}
+button:hover{border-color:var(--ac)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.primary{background:var(--ac);color:var(--acfg);border-color:var(--ac);font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center}
+.stat b{display:block;font-size:1.6rem;color:var(--ac)}
+.stat small{color:var(--mut)}
+.alert{background:color-mix(in srgb,var(--warn) 14%,var(--panel));border:1px solid var(--warn);border-radius:12px;padding:10px 14px;margin-bottom:14px}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.tools input{flex:1;min-width:180px}
+input,select,textarea{font:inherit;width:100%;background:var(--bg);color:var(--tx);border:1px solid var(--line);border-radius:10px;padding:9px 11px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.chip{padding:5px 12px;border-radius:99px;font-size:.85rem}
+.chip[aria-pressed="true"]{background:var(--ac);color:var(--acfg);border-color:var(--ac)}
+.card{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--c,var(--mut));border-radius:12px;padding:14px;margin-bottom:10px;display:grid;gap:8px}
+.top{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:flex-start}
+.card h3{margin:0;font-size:1.05rem}
+.card h3 small{color:var(--mut);font-weight:400}
+.meta{color:var(--mut);font-size:.85rem;display:flex;flex-wrap:wrap;gap:4px 14px}
+.notes{font-size:.9rem;white-space:pre-wrap}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.row select{width:auto;border-color:var(--c,var(--line));color:var(--c,var(--tx));font-weight:600}
+.badge{font-size:.78rem;padding:2px 9px;border-radius:99px;border:1px solid var(--warn);color:var(--warn)}
+.sm{padding:5px 10px;font-size:.85rem}
+.empty{text-align:center;color:var(--mut);padding:40px 10px;border:1px dashed var(--line);border-radius:12px}
+a{color:var(--ac)}
+dialog{background:var(--panel);color:var(--tx);border:1px solid var(--line);border-radius:14px;width:min(640px,94vw);padding:18px}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+form{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+form .full{grid-column:1/-1}
+label{font-size:.8rem;color:var(--mut);display:block;margin-bottom:3px}
+@media(max-width:560px){form{grid-template-columns:1fr}}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:9px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .25s}
+#toast.on{opacity:1}
+@media(prefers-reduced-motion:reduce){#toast{transition:none}}
+.board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(230px,1fr);gap:10px;overflow-x:auto;padding-bottom:8px}
+.col{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px;min-height:120px}
+.col.over{border-color:var(--ac)}
+.col h4{margin:0 0 8px;font-size:.85rem;color:var(--c,var(--mut))}
+.kc{background:var(--bg);border:1px solid var(--line);border-left:3px solid var(--c);border-radius:10px;padding:9px;margin-bottom:8px;cursor:grab;font-size:.88rem}
+.kc small{color:var(--mut);display:block}
+.seg{display:inline-flex}.seg button{border-radius:0}.seg button:first-child{border-radius:10px 0 0 10px}.seg button:last-child{border-radius:0 10px 10px 0}
+.seg button[aria-pressed="true"]{background:var(--ac);color:var(--acfg);border-color:var(--ac)}
+table.mini{width:100%;border-collapse:collapse;font-size:.85rem}.mini th,.mini td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line)}
+.mini th{color:var(--mut);font-weight:600}
+pre.msg{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;font:inherit;max-height:40vh;overflow:auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Jobs <span>Track</span></h1>
+    <div class="btns">
+      <button class="primary" id="add">+ Nouvelle candidature</button>
+      <button id="csv">Export CSV</button>
+      <button id="ics">Calendrier .ics</button>
+      <button id="json">Sauvegarde JSON</button>
+      <button id="imp">Importer</button>
+      <button id="theme" aria-label="Changer le thème">◐</button>
+      <input type="file" id="file" accept="application/json" hidden>
+    </div>
+  </header>
+
+  <section class="stats" id="stats" aria-label="Statistiques"></section>
+  <div id="alert"></div>
+  <details class="stat" style="text-align:left;margin-bottom:14px"><summary style="cursor:pointer">Ce qui fonctionne (par source et version de CV)</summary><div id="insights"></div></details>
+
+  <div class="tools"><input type="search" id="q" placeholder="Rechercher (entreprise, poste, ville, notes…)" aria-label="Rechercher"><div class="seg" role="group" aria-label="Affichage"><button id="v-list" aria-pressed="true">Liste</button><button id="v-board" aria-pressed="false">Kanban</button></div></div>
+  <div class="chips" id="chips" role="group" aria-label="Filtrer par statut"></div>
+  <main id="list"></main>
+  <p style="color:var(--mut);font-size:.8rem">Vos données restent dans ce navigateur, sur cet appareil. Pensez à faire une sauvegarde JSON régulièrement.</p>
+</div>
+
+<dialog id="dlg">
+  <form id="form" method="dialog">
+    <div><label for="f-company">Entreprise *</label><input id="f-company" required></div>
+    <div><label for="f-role">Poste *</label><input id="f-role" required></div>
+    <div class="full"><label for="f-url">Lien de l’offre</label><input id="f-url" type="url" placeholder="https://…"></div>
+    <div><label for="f-city">Ville</label><input id="f-city"></div>
+    <div><label for="f-source">Source</label><select id="f-source"></select></div>
+    <div><label for="f-date">Date de candidature</label><input id="f-date" type="date"></div>
+    <div><label for="f-status">Statut</label><select id="f-status"></select></div>
+    <div><label for="f-relance">Relance prévue</label><input id="f-relance" type="date"></div>
+    <div><label for="f-interview">Entretien (date et heure)</label><input id="f-interview" type="datetime-local"></div>
+    <div><label for="f-contact">Contact (nom, email)</label><input id="f-contact"></div>
+    <div><label for="f-cv">Version du CV</label><input id="f-cv" placeholder="ex. Admin sys, Support N2"></div>
+    <div><label for="f-salary">Salaire annoncé</label><input id="f-salary" placeholder="ex. 28–30 k€"></div>
+    <div class="full"><label for="f-notes">Notes (entretien, questions, retour…)</label><textarea id="f-notes" rows="4"></textarea></div>
+    <div class="full row" style="justify-content:flex-end">
+      <button type="button" id="cancel">Annuler</button>
+      <button class="primary" type="submit">Enregistrer</button>
+    </div>
+  </form>
+</dialog>
+<dialog id="mdlg">
+  <h2 style="margin-top:0;font-size:1.1rem">Modèle de message</h2>
+  <div class="row" style="margin-bottom:10px"><select id="m-tpl" aria-label="Modèle"></select></div>
+  <pre class="msg" id="m-out"></pre>
+  <div class="row" style="justify-content:flex-end;margin-top:10px"><button id="m-close">Fermer</button><button class="primary" id="m-copy">Copier</button></div>
+</dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const ST=["À postuler","Envoyée","Entretien","Offre","Refusée","Sans réponse"];
+const COL={"À postuler":"--mut","Envoyée":"--ac","Entretien":"--warn","Offre":"--ok","Refusée":"--bad","Sans réponse":"--mut"};
+const SRC=["LinkedIn","Welcome to the Jungle","APEC","Indeed","France Travail","Candidature spontanée","Réseau","Autre"];
+const KEY="candidatures:v1";
+const $=id=>document.getElementById(id);
+let items=load(),q="",flt="Tous",editId=null,view=lsGet("candidatures:view")||"list";
+
+function load(){try{const v=JSON.parse(localStorage.getItem(KEY));return Array.isArray(v)?v:[]}catch{return[]}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(items))}catch{toast("Stockage indisponible : faites une sauvegarde JSON.")}}
+function lsGet(k){try{return localStorage.getItem(k)}catch{return null}}
+function toast(m,act){const t=$("toast");t.textContent=m;
+  if(act){const b=document.createElement("button");b.textContent=act.label;b.className="sm";b.style.marginLeft="10px";b.onclick=()=>{act.fn();t.classList.remove("on")};t.append(b)}
+  t.style.pointerEvents=act?"auto":"none";t.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove("on"),act?6000:2600)}
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const safeUrl=u=>/^https?:\/\//i.test(u||"")?u:"";
+const today=()=>new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
+const addDays=(d,n)=>{const x=new Date(d+"T12:00:00");x.setDate(x.getDate()+n);return x.toISOString().slice(0,10)};
+const fmt=d=>d?new Date(d+"T12:00:00").toLocaleDateString("fr-FR"):"";
+const fmtDT=d=>d?new Date(d).toLocaleString("fr-FR",{dateStyle:"short",timeStyle:"short"}):"";
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const due=i=>i.status==="Envoyée"&&i.relance&&i.relance<=today();
+
+function render(){
+  const sent=items.filter(i=>i.status!=="À postuler").length;
+  const talk=items.filter(i=>i.status==="Entretien"||i.status==="Offre").length;
+  const resp=items.filter(i=>["Entretien","Offre","Refusée"].includes(i.status)).length;
+  $("stats").innerHTML=[[items.length,"Total"],[sent,"Envoyées"],[talk,"Entretiens / offres"],[sent?Math.round(resp/sent*100)+" %":"–","Taux de réponse"]]
+    .map(([v,l])=>`<div class="stat"><b>${v}</b><small>${l}</small></div>`).join("");
+  const late=items.filter(due);
+  $("alert").innerHTML=late.length?`<div class="alert" role="alert"><b>${late.length} relance${late.length>1?"s":""} à faire :</b> ${late.map(i=>esc(i.company)).join(", ")}</div>`:"";
+  const soon=items.filter(i=>{const d=new Date(i.interview)-Date.now();return i.interview&&d>0&&d<1728e5});
+  if(soon.length)$("alert").insertAdjacentHTML("beforeend",`<div class="alert" role="alert"><b>Entretien dans moins de 48 h :</b> ${soon.map(i=>esc(i.company)+" ("+fmtDT(i.interview)+")").join(", ")}</div>`);
+  {const lb=lsGet("candidatures:backup"),stale=items.length>0&&(!lb||lb<addDays(today(),-14));
+    if(stale)$("alert").insertAdjacentHTML("beforeend",'<div class="alert">Aucune sauvegarde récente : cliquez sur « Sauvegarde JSON ».</div>')}
+  $("chips").innerHTML=["Tous",...ST].map(s=>{const n=s==="Tous"?items.length:items.filter(i=>i.status===s).length;
+    return `<button class="chip" aria-pressed="${flt===s}" data-chip="${esc(s)}">${esc(s)} (${n})</button>`}).join("");
+  const k=q.trim().toLowerCase();
+  const rows=items.filter(i=>(flt==="Tous"||i.status===flt)&&(!k||[i.company,i.role,i.city,i.notes,i.contact,i.source,i.cv,i.url].join(" ").toLowerCase().includes(k)))
+    .sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+  $("v-list").setAttribute("aria-pressed",String(view==="list"));$("v-board").setAttribute("aria-pressed",String(view==="board"));
+  $("insights").innerHTML=insights();
+  if(view==="board"){$("list").innerHTML=`<div class="board">${ST.map(s=>col(s,rows.filter(i=>i.status===s))).join("")}</div>`;return}
+  $("list").innerHTML=rows.length?rows.map(card).join(""):
+    `<div class="empty">${items.length?"Aucun résultat pour ce filtre.":"Aucune candidature pour l’instant. Ajoutez votre première offre pour démarrer le suivi."}</div>`;
+}
+function card(i){
+  const u=safeUrl(i.url);
+  const meta=[i.date&&"Envoyée le "+fmt(i.date),i.interview&&"Entretien : "+fmtDT(i.interview),i.city,i.source,i.cv&&"CV : "+i.cv,i.salary,i.contact&&"Contact : "+i.contact].filter(Boolean).map(esc).join('</span><span>');
+  return `<article class="card" style="--c:var(${COL[i.status]||"--mut"})">
+    <div class="top"><h3>${esc(i.company)} <small>· ${esc(i.role)}</small></h3>
+      <div class="row">${due(i)?'<span class="badge">À relancer</span>':""}
+        <select data-st="${i.id}" aria-label="Statut de ${esc(i.company)}">${ST.map(s=>`<option ${s===i.status?"selected":""}>${s}</option>`).join("")}</select></div></div>
+    <div class="meta"><span>${meta}</span>${i.relance&&i.status==="Envoyée"?`<span>Relance : ${fmt(i.relance)}</span>`:""}</div>
+    ${i.notes?`<div class="notes">${esc(i.notes)}</div>`:""}
+    <div class="row">${u?`<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">Voir l’offre</a>`:""}
+      <button class="sm" data-msg="${i.id}">Message</button><button class="sm" data-edit="${i.id}">Modifier</button><button class="sm" data-del="${i.id}">Supprimer</button></div>
+  </article>`;
+}
+
+/* ---- Formulaire ---- */
+$("f-status").innerHTML=ST.map(s=>`<option>${s}</option>`).join("");
+$("f-source").innerHTML=SRC.map(s=>`<option>${s}</option>`).join("");
+const F=["company","role","url","city","source","date","status","relance","interview","contact","cv","salary","notes"];
+function openForm(id){
+  editId=id;const i=items.find(x=>x.id===id)||{status:"Envoyée",source:SRC[0],date:today(),relance:addDays(today(),7)};
+  F.forEach(k=>$("f-"+k).value=i[k]||"");$("dlg").showModal();$("f-company").focus();
+}
+$("form").addEventListener("submit",e=>{
+  e.preventDefault();const o={};F.forEach(k=>o[k]=$("f-"+k).value.trim());
+  if(o.status==="Envoyée"&&!o.relance&&o.date)o.relance=addDays(o.date,7);
+  if(!editId&&items.some(x=>x.company.toLowerCase()===o.company.toLowerCase()&&x.role.toLowerCase()===o.role.toLowerCase())&&!confirm("Cette candidature existe déjà. L’ajouter quand même ?"))return;
+  if(editId){items=items.map(x=>x.id===editId?{...x,...o}:x)}else{items.unshift({id:uid(),...o})}
+  save();$("dlg").close();render();toast("Candidature enregistrée");
+});
+$("add").onclick=()=>openForm(null);
+$("cancel").onclick=()=>$("dlg").close();
+
+/* ---- Actions de liste ---- */
+$("list").addEventListener("click",e=>{
+  const ed=e.target.closest("[data-edit]"),de=e.target.closest("[data-del]"),ms=e.target.closest("[data-msg]");
+  if(ed)openForm(ed.dataset.edit);
+  if(ms)openMsg(ms.dataset.msg);
+  if(de){const gone=items.find(x=>x.id===de.dataset.del);if(gone){items=items.filter(x=>x.id!==gone.id);save();render();undo(gone)}}
+});
+$("list").addEventListener("change",e=>{
+  const id=e.target.dataset.st;if(id)setStatus(id,e.target.value);
+});
+$("chips").addEventListener("click",e=>{const c=e.target.closest("[data-chip]");if(c){flt=c.dataset.chip;render()}});
+$("q").addEventListener("input",e=>{q=e.target.value;render()});
+
+/* ---- Export / import ---- */
+function dl(name,type,data){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
+$("json").onclick=()=>{dl("candidatures-"+today()+".json","application/json",JSON.stringify(items,null,2));try{localStorage.setItem("candidatures:backup",today())}catch{}render()};
+$("csv").onclick=()=>{
+  const cols=[["company","Entreprise"],["role","Poste"],["status","Statut"],["date","Date"],["relance","Relance"],["interview","Entretien"],["source","Source"],["city","Ville"],["contact","Contact"],["cv","CV"],["salary","Salaire"],["url","Lien"],["notes","Notes"]];
+  const c=v=>'"'+String(v??"").replace(/"/g,'""')+'"';
+  dl("candidatures-"+today()+".csv","text/csv;charset=utf-8","\ufeff"+[cols.map(x=>c(x[1])).join(";"),...items.map(i=>cols.map(x=>c(i[x[0]])).join(";"))].join("\n"));
+};
+$("imp").onclick=()=>$("file").click();
+$("file").addEventListener("change",async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{const d=JSON.parse(await f.text());if(!Array.isArray(d))throw 0;
+    const ok=d.filter(x=>x&&x.company&&x.role).map(x=>({...x,id:x.id||uid(),status:ST.includes(x.status)?x.status:"Envoyée"}));
+    const ids=new Set(items.map(x=>x.id));items=[...ok.filter(x=>!ids.has(x.id)),...items];save();render();toast(ok.length+" candidature(s) importée(s)")}
+  catch{toast("Fichier invalide")}e.target.value="";
+});
+
+/* ---- Améliorations : statut, Kanban, tendances, calendrier, messages ---- */
+const NL=String.fromCharCode(10),CR=String.fromCharCode(13),BS=String.fromCharCode(92);
+const PROFIL={nom:"Arnold Edwin FOMEDONG",site:"arnold-edwin.vercel.app"}; // à adapter
+
+function setStatus(id,status){
+  items=items.map(x=>{if(x.id!==id)return x;const n={...x,status};if(n.status!=="À postuler"&&!n.date)n.date=today();
+    if(n.status==="Envoyée"&&!n.relance)n.relance=addDays(today(),7);
+    if(n.status!=="Envoyée")n.relance="";return n});
+  save();render();
+}
+function undo(g){toast("Candidature supprimée",{label:"Annuler",fn:()=>{items.unshift(g);save();render()}})}
+
+function col(s,rows){
+  return `<section class="col" data-drop="${esc(s)}" style="--c:var(${COL[s]})"><h4>${esc(s)} (${rows.length})</h4>${rows.map(i=>`<div class="kc" draggable="true" data-drag="${i.id}" style="--c:var(${COL[i.status]})"><b>${esc(i.company)}</b><small>${esc(i.role)}</small>${due(i)?'<span class="badge">À relancer</span>':""}${i.interview?`<small>Entretien : ${fmtDT(i.interview)}</small>`:""}<select data-st="${i.id}" aria-label="Statut" style="margin-top:6px">${ST.map(s=>`<option ${s===i.status?"selected":""}>${s}</option>`).join("")}</select><div class="row" style="margin-top:6px"><button class="sm" data-edit="${i.id}">Modifier</button><button class="sm" data-msg="${i.id}">Message</button></div></div>`).join("")}</section>`;
+}
+let dragId=null;
+const hit=(e,sel)=>e.target.closest?e.target.closest(sel):null;
+document.addEventListener("dragstart",e=>{const k=hit(e,"[data-drag]");if(k){dragId=k.dataset.drag;e.dataTransfer.effectAllowed="move"}});
+document.addEventListener("dragover",e=>{const c=hit(e,"[data-drop]");if(c&&dragId){e.preventDefault();c.classList.add("over")}});
+document.addEventListener("dragleave",e=>{const c=hit(e,"[data-drop]");if(c)c.classList.remove("over")});
+document.addEventListener("drop",e=>{const c=hit(e,"[data-drop]");if(!c||!dragId)return;e.preventDefault();const id=dragId;dragId=null;setStatus(id,c.dataset.drop)});
+document.addEventListener("dragend",()=>{dragId=null;document.querySelectorAll(".over").forEach(c=>c.classList.remove("over"))});
+function setView(v){view=v;try{localStorage.setItem("candidatures:view",v)}catch{}render()}
+$("v-list").onclick=()=>setView("list");$("v-board").onclick=()=>setView("board");
+
+function insights(){
+  const sent=items.filter(i=>i.status!=="À postuler");
+  if(!sent.length)return '<p style="color:var(--mut)">Envoyez quelques candidatures pour voir les tendances.</p>';
+  const grp=k=>{const m={};sent.forEach(i=>{const g=i[k]||"(non précisé)";const o=m[g]=m[g]||{n:0,r:0,e:0};o.n++;if(["Entretien","Offre","Refusée"].includes(i.status))o.r++;if(["Entretien","Offre"].includes(i.status))o.e++});return m};
+  const tbl=(t,m)=>`<table class="mini"><tr><th>${t}</th><th>Envois</th><th>Réponses</th><th>Entretiens</th></tr>${Object.entries(m).sort((a,b)=>b[1].n-a[1].n).map(([g,v])=>`<tr><td>${esc(g)}</td><td>${v.n}</td><td>${Math.round(v.r/v.n*100)} %</td><td>${v.e}</td></tr>`).join("")}</table>`;
+  return `<div style="display:grid;gap:14px;margin-top:10px">${tbl("Source",grp("source"))}${tbl("Version du CV",grp("cv"))}</div><p style="color:var(--mut);font-size:.8rem">Avec peu d’envois, ces chiffres ne sont pas fiables : attendez une dizaine de candidatures avant de conclure.</p>`;
+}
+
+/* Calendrier .ics : relances (journée entière) + entretiens (1 h) */
+const icsEsc=s=>String(s).split(BS).join(BS+BS).split(";").join(BS+";").split(",").join(BS+",").split(NL).join(BS+"n");
+$("ics").onclick=()=>{
+  const ev=[],stamp=new Date().toISOString().replace(/[-:]/g,"").slice(0,15)+"Z";
+  const f=d=>d.toISOString().replace(/[-:]/g,"").slice(0,15)+"Z";
+  items.forEach(i=>{
+    if(i.interview){const s=new Date(i.interview),e=new Date(s.getTime()+36e5);
+      ev.push(["BEGIN:VEVENT","UID:"+i.id+"-itw@jobtrack","DTSTAMP:"+stamp,"DTSTART:"+f(s),"DTEND:"+f(e),"SUMMARY:"+icsEsc("Entretien : "+i.company+" ("+i.role+")"),"END:VEVENT"].join(CR+NL))}
+    if(i.status==="Envoyée"&&i.relance){
+      ev.push(["BEGIN:VEVENT","UID:"+i.id+"-rel@jobtrack","DTSTAMP:"+stamp,"DTSTART;VALUE=DATE:"+i.relance.split("-").join(""),"DTEND;VALUE=DATE:"+addDays(i.relance,1).split("-").join(""),"SUMMARY:"+icsEsc("Relancer "+i.company),"END:VEVENT"].join(CR+NL))}
+  });
+  if(!ev.length){toast("Rien à exporter : ajoutez une relance ou un entretien.");return}
+  dl("candidatures.ics","text/calendar;charset=utf-8",["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//JobTrack//FR","CALSCALE:GREGORIAN",...ev,"END:VCALENDAR"].join(CR+NL));
+};
+
+/* Modèles de messages */
+const TPL={
+  "Relance après candidature":["Bonjour {contact},","","Je me permets de revenir vers vous au sujet de ma candidature au poste de {poste} chez {entreprise}, envoyée le {date}. Je reste très motivé par ce poste et je peux vous transmettre tout complément utile (CV adapté, démonstration d’un projet).","","Cordialement,","{nom}"],
+  "Remerciement après entretien":["Bonjour {contact},","","Merci pour notre échange du {date_entretien} au sujet du poste de {poste}. Il a renforcé mon intérêt pour {entreprise}. Je reste disponible pour toute information complémentaire.","","Cordialement,","{nom}"],
+  "Candidature spontanée":["Bonjour {contact},","","Jeune diplômé en systèmes, réseaux et cybersécurité, je souhaite rejoindre {entreprise} en tant que {poste}. Mon CV est en pièce jointe et mon portfolio est ici : {site}. Seriez-vous disponible pour un échange de 15 minutes ?","","Cordialement,","{nom}"],
+  "Invitation LinkedIn":["Bonjour {contact}, jeune diplômé en systèmes, réseaux et cybersécurité, je cherche un poste d’administrateur systèmes et réseaux. {entreprise} m’intéresse beaucoup : seriez-vous ouvert à un court échange ?"]
+};
+function fill(lines,i){
+  const v={contact:(i.contact||"").split(",")[0].trim()||"Madame, Monsieur",poste:i.role,entreprise:i.company,date:fmt(i.date)||"[date]",date_entretien:i.interview?new Date(i.interview).toLocaleDateString("fr-FR"):"[date]",nom:PROFIL.nom,site:PROFIL.site};
+  return Object.entries(v).reduce((t,[k,x])=>t.split("{"+k+"}").join(x),lines.join(NL));
+}
+let msgId=null;
+$("m-tpl").innerHTML=Object.keys(TPL).map(k=>`<option>${esc(k)}</option>`).join("");
+function renderMsg(){const i=items.find(x=>x.id===msgId);if(i)$("m-out").textContent=fill(TPL[$("m-tpl").value],i)}
+function openMsg(id){msgId=id;renderMsg();$("mdlg").showModal()}
+$("m-tpl").onchange=renderMsg;$("m-close").onclick=()=>$("mdlg").close();
+$("m-copy").onclick=async()=>{try{await navigator.clipboard.writeText($("m-out").textContent);toast("Message copié")}catch{toast("Copie impossible : sélectionnez le texte")}};
+
+/* ---- Thème ---- */
+try{const t=localStorage.getItem("candidatures:theme");if(t)document.documentElement.dataset.theme=t}catch{}
+$("theme").onclick=()=>{const r=document.documentElement;
+  const dark=r.dataset.theme?r.dataset.theme==="dark":matchMedia("(prefers-color-scheme:dark)").matches;
+  r.dataset.theme=dark?"light":"dark";try{localStorage.setItem("candidatures:theme",r.dataset.theme)}catch{}};
+render();
+</script>
+</body>
+</html>
